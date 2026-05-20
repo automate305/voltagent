@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arctic Air HVAC — VoltAgent Live Demo</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222538;
+      --border: #2e3250;
+      --accent: #6c63ff;
+      --accent2: #00d4aa;
+      --warn: #ff6b35;
+      --danger: #ff4757;
+      --text: #e8eaf6;
+      --muted: #8b8fa8;
+      --code-bg: #12141e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ---- TOP NAV ---- */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 54px;
+    }
+    .nav-brand {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      gap: 0.25rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.82rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--surface2); }
+
+    /* ---- LAYOUT ---- */
+    .page { max-width: 900px; margin: 0 auto; padding: 3rem 2rem 6rem; }
+
+    /* ---- HERO ---- */
+    .hero {
+      text-align: center;
+      padding: 3.5rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 560px;
+      margin: 0 auto 2rem;
+    }
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ---- SECTION ---- */
+    section { margin-bottom: 3.5rem; }
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+    p { color: var(--muted); margin-bottom: 1rem; }
+
+    /* ---- PATTERN TABLE ---- */
+    .pattern-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+    }
+    .pattern-table th {
+      text-align: left;
+      padding: 0.6rem 1rem;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+    .pattern-table th:first-child { border-radius: 8px 0 0 0; }
+    .pattern-table th:last-child { border-radius: 0 8px 0 0; }
+    .pattern-table td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .pattern-table tr:last-child td { border-bottom: none; }
+    .pattern-table tr:hover td { background: var(--surface2); }
+    .pattern-table td:first-child { font-family: 'SF Mono','Fira Code',monospace; color: var(--accent2); font-size: 0.82rem; white-space: nowrap; }
+    .pattern-table td:last-child { color: var(--muted); }
+    .table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+    /* ---- WORKFLOW CARDS ---- */
+    .workflow-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .wf-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .wf-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .wf-meta { flex: 1; min-width: 0; }
+    .wf-id {
+      font-family: 'SF Mono','Fira Code',monospace;
+      font-size: 0.78rem;
+      color: var(--accent);
+      margin-bottom: 0.2rem;
+    }
+    .wf-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+    .wf-purpose { font-size: 0.85rem; color: var(--muted); margin: 0; }
+    .wf-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .tag {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--accent2);
+      font-family: 'SF Mono','Fira Code',monospace;
+      font-size: 0.72rem;
+      padding: 0.18rem 0.5rem;
+      border-radius: 5px;
+    }
+    .wf-body { padding: 1.25rem 1.5rem; }
+
+    /* ---- STEP PIPELINE ---- */
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      font-size: 0.76rem;
+    }
+    .step-pill {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.22rem 0.55rem;
+      border-radius: 5px;
+      white-space: nowrap;
+      font-family: 'SF Mono','Fira Code',monospace;
+    }
+    .step-pill.agent { border-color: #6c63ff55; color: var(--accent); }
+    .step-pill.branch { border-color: #00d4aa55; color: var(--accent2); }
+    .step-pill.suspend { border-color: #ff6b3555; color: var(--warn); }
+    .step-pill.foreach { border-color: #ff6b3555; color: var(--warn); }
+    .arrow {
+      color: var(--border);
+      padding: 0 3px;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    /* ---- CODE BLOCKS ---- */
+    .code-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+    .code-wrap { position: relative; margin-bottom: 1rem; }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.1rem;
+      font-family: 'SF Mono','Fira Code','Cascadia Code',monospace;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #c9d1d9;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.7rem;
+      padding: 0.22rem 0.6rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .copy-btn.copied { color: var(--accent2); border-color: var(--accent2); }
+
+    /* ---- SETUP ---- */
+    .setup-steps { counter-reset: step; }
+    .setup-step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.75rem;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .setup-step-body { flex: 1; }
+    .setup-step-body p { margin-bottom: 0.5rem; }
+
+    /* ---- ENV TABLE ---- */
+    .env-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .env-table td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); }
+    .env-table tr:last-child td { border-bottom: none; }
+    .env-table td:first-child { font-family: 'SF Mono','Fira Code',monospace; color: var(--accent2); white-space: nowrap; }
+    .env-table td:nth-child(2) { color: var(--warn); font-size: 0.78rem; font-weight: 600; text-align: center; }
+    .env-table td:last-child { color: var(--muted); }
+
+    /* ---- CALLOUT ---- */
+    .callout {
+      background: var(--surface2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 0.85rem 1.1rem;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .callout strong { color: var(--text); }
+    .callout.warn { border-color: var(--warn); }
+    .callout.success { border-color: var(--accent2); }
+
+    /* ---- JSON highlight ---- */
+    .json-key { color: #79c0ff; }
+    .json-str { color: #a5d6ff; }
+    .json-num { color: #f78166; }
+    .json-bool { color: #ffa657; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 600px) {
+      .page { padding: 2rem 1rem 4rem; }
+      .hero h1 { font-size: 1.7rem; }
+      nav { padding: 0 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#top">❄️ Arctic Air <span>HVAC</span></a>
+  <div class="nav-links">
+    <a href="#patterns">Patterns</a>
+    <a href="#workflow-1">Service Request</a>
+    <a href="#workflow-2">Quote Approval</a>
+    <a href="#workflow-3">Batch Maintenance</a>
+    <a href="#workflow-4">Emergency</a>
+    <a href="#setup">Setup</a>
+  </div>
+</nav>
+
+<div class="page" id="top">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">VoltAgent Live Demo</div>
+    <h1>Arctic Air <span>HVAC</span><br>Workflow Reference</h1>
+    <p>A production-inspired example demonstrating VoltAgent&rsquo;s core workflow primitives through a realistic HVAC service company.</p>
+    <div class="hero-chips">
+      <span class="chip">anthropic/claude-haiku-4-5</span>
+      <span class="chip">4 workflows</span>
+      <span class="chip">6 agents</span>
+      <span class="chip">port 3141</span>
+    </div>
+  </div>
+
+  <!-- PATTERNS TABLE -->
+  <section id="patterns">
+    <div class="section-label">Patterns Demonstrated</div>
+    <h2>VoltAgent Feature Map</h2>
+    <p>Every major workflow primitive appears at least once in this demo.</p>
+    <div class="table-wrap">
+      <table class="pattern-table">
+        <thead>
+          <tr><th>Feature</th><th>Where it&rsquo;s used</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>andAgent + tool use</td><td>Service Request &mdash; triage step calls <code>get_customer_history</code> before classifying</td></tr>
+          <tr><td>getStepData</td><td>Service Request &mdash; <code>dispatch</code> and <code>estimate</code> recover fields lost after andAgent</td></tr>
+          <tr><td>workflowState</td><td>Service Request &mdash; <code>ticketId</code> and urgency persist across all 7 steps</td></tr>
+          <tr><td>andBranch</td><td>Service Request &mdash; routes to emergency / scheduled / preventive</td></tr>
+          <tr><td>andTap</td><td>Logging side-effects in all four workflows</td></tr>
+          <tr><td>suspend / resume</td><td>Quote Approval &mdash; pauses for manager sign-off on quotes &gt; $1,000</td></tr>
+          <tr><td>andForEach + concurrency</td><td>Maintenance Batch &mdash; schedules units 2 at a time</td></tr>
+          <tr><td>Wrapped agent in andThen</td><td>Maintenance Batch &mdash; <code>reminderAgent.generateText()</code> per unit</td></tr>
+          <tr><td>andMap aggregation</td><td>Maintenance Batch &mdash; builds revenue summary from array</td></tr>
+          <tr><td>Multi-output AI generation</td><td>Emergency &mdash; one agent produces customer SMS + technician brief</td></tr>
+          <tr><td>Time-based business logic</td><td>Emergency &mdash; after-hours surge pricing (1.5&times;)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- WORKFLOW 1 -->
+  <section id="workflow-1">
+    <div class="section-label">Workflow 1</div>
+    <h2>Service Request Triage</h2>
+
+    <div class="workflow-card">
+      <div class="wf-header">
+        <div class="wf-icon">🔧</div>
+        <div class="wf-meta">
+          <div class="wf-id">hvac-service-request</div>
+          <div class="wf-name">HVAC Service Request Workflow</div>
+          <p class="wf-purpose">Triage incoming HVAC service requests, assign technicians, and generate job tickets.</p>
+        </div>
+      </div>
+      <div class="wf-tags">
+        <span class="tag">andAgent</span>
+        <span class="tag">createTool</span>
+        <span class="tag">andThen</span>
+        <span class="tag">andBranch</span>
+        <span class="tag">getStepData</span>
+        <span class="tag">workflowState</span>
+        <span class="tag">andTap</span>
+      </div>
+      <div class="wf-body">
+        <div class="pipeline">
+          <span class="step-pill">init</span><span class="arrow">&rarr;</span>
+          <span class="step-pill agent">triage (AI+tool)</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">dispatch</span><span class="arrow">&rarr;</span>
+          <span class="step-pill agent">diagnosis (AI)</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">estimate</span><span class="arrow">&rarr;</span>
+          <span class="step-pill branch">branch</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">finalize</span>
+        </div>
+
+        <h3>Returning customer (warranty discount)</h3>
+        <div class="callout success"><strong>Tip:</strong> Phone <code>555-1234</code> is in the mock DB &mdash; returns <code>warrantyActive: true</code> and a 20% parts discount.</div>
+        <div class="code-wrap">
+          <pre id="req1a">{
+  <span class="json-key">"customerName"</span>: <span class="json-str">"John Smith"</span>,
+  <span class="json-key">"phone"</span>: <span class="json-str">"555-1234"</span>,
+  <span class="json-key">"address"</span>: <span class="json-str">"123 Main St, Miami FL 33101"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"AC stopped blowing cold air, making a clicking noise"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"central-ac"</span>,
+  <span class="json-key">"equipmentAge"</span>: <span class="json-num">8</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req1a', this)">Copy</button>
+        </div>
+
+        <h3>Emergency &mdash; gas smell</h3>
+        <div class="callout warn"><strong>Expected:</strong> urgency <code>emergency</code>, status <code>dispatched</code>, technician assigned with 60&ndash;90 min ETA.</div>
+        <div class="code-wrap">
+          <pre id="req1b">{
+  <span class="json-key">"customerName"</span>: <span class="json-str">"Maria Lopez"</span>,
+  <span class="json-key">"phone"</span>: <span class="json-str">"555-0000"</span>,
+  <span class="json-key">"address"</span>: <span class="json-str">"789 Oak Ave, Miami FL"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Furnace won't turn on and there's a gas smell"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"furnace"</span>,
+  <span class="json-key">"equipmentAge"</span>: <span class="json-num">12</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req1b', this)">Copy</button>
+        </div>
+
+        <h3>Preventive maintenance</h3>
+        <div class="code-wrap">
+          <pre id="req1c">{
+  <span class="json-key">"customerName"</span>: <span class="json-str">"Tom Nguyen"</span>,
+  <span class="json-key">"phone"</span>: <span class="json-str">"555-3333"</span>,
+  <span class="json-key">"address"</span>: <span class="json-str">"500 Brickell Key Dr, Miami FL"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Annual tune-up, unit is running fine"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"heat-pump"</span>,
+  <span class="json-key">"equipmentAge"</span>: <span class="json-num">3</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req1c', this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW 2 -->
+  <section id="workflow-2">
+    <div class="section-label">Workflow 2</div>
+    <h2>Quote Approval</h2>
+
+    <div class="workflow-card">
+      <div class="wf-header">
+        <div class="wf-icon">📄</div>
+        <div class="wf-meta">
+          <div class="wf-id">hvac-quote-approval</div>
+          <div class="wf-name">HVAC Quote Approval Workflow</div>
+          <p class="wf-purpose">Auto-approves quotes under $1,000. Suspends and waits for manager input above.</p>
+        </div>
+      </div>
+      <div class="wf-tags">
+        <span class="tag">andAgent</span>
+        <span class="tag">andThen</span>
+        <span class="tag">suspend</span>
+        <span class="tag">resume</span>
+        <span class="tag">getStepData</span>
+      </div>
+      <div class="wf-body">
+        <div class="pipeline">
+          <span class="step-pill">cost-calculation</span><span class="arrow">&rarr;</span>
+          <span class="step-pill agent">quote (AI)</span><span class="arrow">&rarr;</span>
+          <span class="step-pill suspend">approval-gate</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">finalize-quote</span>
+        </div>
+
+        <h3>High-value quote &mdash; will suspend</h3>
+        <div class="callout warn"><strong>Behaviour:</strong> Compressor + coil + refrigerant totals over $1,000 &rarr; workflow suspends. Resume it with the payload below.</div>
+        <div class="code-wrap">
+          <pre id="req2a">{
+  <span class="json-key">"ticketId"</span>: <span class="json-str">"TKT-ABC123"</span>,
+  <span class="json-key">"customerName"</span>: <span class="json-str">"John Smith"</span>,
+  <span class="json-key">"jobType"</span>: <span class="json-str">"replacement"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"central-ac"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Compressor failure on 8-year-old unit"</span>,
+  <span class="json-key">"partsNeeded"</span>: [<span class="json-str">"compressor"</span>, <span class="json-str">"evaporator_coil"</span>, <span class="json-str">"refrigerant_r410a"</span>],
+  <span class="json-key">"isReturningCustomer"</span>: <span class="json-bool">true</span>,
+  <span class="json-key">"warrantyActive"</span>: <span class="json-bool">false</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req2a', this)">Copy</button>
+        </div>
+
+        <h3>Resume payload (manager approval)</h3>
+        <div class="code-wrap">
+          <pre id="req2resume">{
+  <span class="json-key">"approved"</span>: <span class="json-bool">true</span>,
+  <span class="json-key">"managerId"</span>: <span class="json-str">"MGR-001"</span>,
+  <span class="json-key">"comments"</span>: <span class="json-str">"Approved &mdash; customer is VIP"</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req2resume', this)">Copy</button>
+        </div>
+
+        <h3>Small repair &mdash; auto-approves</h3>
+        <div class="code-wrap">
+          <pre id="req2b">{
+  <span class="json-key">"ticketId"</span>: <span class="json-str">"TKT-XYZ789"</span>,
+  <span class="json-key">"customerName"</span>: <span class="json-str">"Carol Davis"</span>,
+  <span class="json-key">"jobType"</span>: <span class="json-str">"repair"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"central-ac"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Capacitor blown, unit won't start"</span>,
+  <span class="json-key">"partsNeeded"</span>: [<span class="json-str">"capacitor"</span>, <span class="json-str">"contactor"</span>],
+  <span class="json-key">"isReturningCustomer"</span>: <span class="json-bool">false</span>,
+  <span class="json-key">"warrantyActive"</span>: <span class="json-bool">false</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req2b', this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW 3 -->
+  <section id="workflow-3">
+    <div class="section-label">Workflow 3</div>
+    <h2>Seasonal Maintenance Batch</h2>
+
+    <div class="workflow-card">
+      <div class="wf-header">
+        <div class="wf-icon">📦</div>
+        <div class="wf-meta">
+          <div class="wf-id">hvac-maintenance-batch</div>
+          <div class="wf-name">Seasonal Maintenance Batch Workflow</div>
+          <p class="wf-purpose">Schedules tune-ups for an array of units in parallel and generates a personalized AI SMS reminder per customer.</p>
+        </div>
+      </div>
+      <div class="wf-tags">
+        <span class="tag">andForEach</span>
+        <span class="tag">concurrency: 2</span>
+        <span class="tag">wrapped agent</span>
+        <span class="tag">andMap</span>
+        <span class="tag">andTap</span>
+      </div>
+      <div class="wf-body">
+        <div class="pipeline">
+          <span class="step-pill">log-batch-start</span><span class="arrow">&rarr;</span>
+          <span class="step-pill foreach">forEach (2x concurrent)</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">andMap summary</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">log-summary</span>
+        </div>
+
+        <h3>Three-unit batch</h3>
+        <div class="callout"><strong>Output includes</strong> a random time slot + AI-generated SMS reminder for each unit, plus an aggregated revenue total.</div>
+        <div class="code-wrap">
+          <pre id="req3a">[
+  {
+    <span class="json-key">"unitId"</span>: <span class="json-str">"U001"</span>,
+    <span class="json-key">"customerName"</span>: <span class="json-str">"Alice Johnson"</span>,
+    <span class="json-key">"address"</span>: <span class="json-str">"100 Pine St, Miami FL"</span>,
+    <span class="json-key">"equipmentType"</span>: <span class="json-str">"central-ac"</span>,
+    <span class="json-key">"lastServiceDate"</span>: <span class="json-str">"2024-03-15"</span>
+  },
+  {
+    <span class="json-key">"unitId"</span>: <span class="json-str">"U002"</span>,
+    <span class="json-key">"customerName"</span>: <span class="json-str">"Bob Chen"</span>,
+    <span class="json-key">"address"</span>: <span class="json-str">"200 Elm Ave, Miami FL"</span>,
+    <span class="json-key">"equipmentType"</span>: <span class="json-str">"heat-pump"</span>
+  },
+  {
+    <span class="json-key">"unitId"</span>: <span class="json-str">"U003"</span>,
+    <span class="json-key">"customerName"</span>: <span class="json-str">"Carol Davis"</span>,
+    <span class="json-key">"address"</span>: <span class="json-str">"300 Oak Blvd, Miami FL"</span>,
+    <span class="json-key">"equipmentType"</span>: <span class="json-str">"furnace"</span>,
+    <span class="json-key">"lastServiceDate"</span>: <span class="json-str">"2023-10-01"</span>
+  }
+]</pre>
+          <button class="copy-btn" onclick="copy('req3a', this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORKFLOW 4 -->
+  <section id="workflow-4">
+    <div class="section-label">Workflow 4</div>
+    <h2>Emergency After-Hours Dispatch</h2>
+
+    <div class="workflow-card">
+      <div class="wf-header">
+        <div class="wf-icon">🚨</div>
+        <div class="wf-meta">
+          <div class="wf-id">hvac-emergency-afterhours</div>
+          <div class="wf-name">Emergency After-Hours Dispatch</div>
+          <p class="wf-purpose">Safety assessment, on-call dispatch, surge pricing, and automated communications for urgent 24/7 calls.</p>
+        </div>
+      </div>
+      <div class="wf-tags">
+        <span class="tag">time-based logic</span>
+        <span class="tag">surge pricing</span>
+        <span class="tag">andAgent (safety)</span>
+        <span class="tag">andAgent (comms)</span>
+        <span class="tag">getStepData</span>
+        <span class="tag">workflowState</span>
+      </div>
+      <div class="wf-body">
+        <div class="pipeline">
+          <span class="step-pill">intake</span><span class="arrow">&rarr;</span>
+          <span class="step-pill agent">safety AI</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">assign-oncall</span><span class="arrow">&rarr;</span>
+          <span class="step-pill agent">comms AI</span><span class="arrow">&rarr;</span>
+          <span class="step-pill">create-ticket</span>
+        </div>
+
+        <div class="callout warn"><strong>Surge pricing:</strong> Calls before 7am, after 8pm, or on weekends automatically apply a 1.5&times; rate multiplier. Run this after 8pm to see it trigger.</div>
+
+        <h3>Gas leak &mdash; immediate hazard</h3>
+        <div class="code-wrap">
+          <pre id="req4a">{
+  <span class="json-key">"customerName"</span>: <span class="json-str">"David Park"</span>,
+  <span class="json-key">"phone"</span>: <span class="json-str">"555-7777"</span>,
+  <span class="json-key">"address"</span>: <span class="json-str">"456 Maple Dr, Miami FL"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Strong gas smell near furnace, pilot light is out"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"furnace"</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req4a', this)">Copy</button>
+        </div>
+
+        <h3>No heat &mdash; monitor situation</h3>
+        <div class="code-wrap">
+          <pre id="req4b">{
+  <span class="json-key">"customerName"</span>: <span class="json-str">"Susan Miller"</span>,
+  <span class="json-key">"phone"</span>: <span class="json-str">"555-8888"</span>,
+  <span class="json-key">"address"</span>: <span class="json-str">"789 Cedar Ln, Miami FL"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Heat pump not heating at all, outdoor unit not running"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"heat-pump"</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req4b', this)">Copy</button>
+        </div>
+
+        <h3>Commercial chiller alarm</h3>
+        <div class="code-wrap">
+          <pre id="req4c">{
+  <span class="json-key">"customerName"</span>: <span class="json-str">"Downtown Office Tower"</span>,
+  <span class="json-key">"phone"</span>: <span class="json-str">"555-9999"</span>,
+  <span class="json-key">"address"</span>: <span class="json-str">"1 Brickell Ave, Miami FL"</span>,
+  <span class="json-key">"issueDescription"</span>: <span class="json-str">"Chiller high-pressure alarm triggered, building losing cooling fast"</span>,
+  <span class="json-key">"equipmentType"</span>: <span class="json-str">"commercial-chiller"</span>
+}</pre>
+          <button class="copy-btn" onclick="copy('req4c', this)">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section id="setup">
+    <div class="section-label">Getting Started</div>
+    <h2>Setup</h2>
+
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="step-num">1</div>
+        <div class="setup-step-body">
+          <p>Clone the repo and navigate to the example:</p>
+          <div class="code-wrap"><pre id="s1">cd examples/with-hvac-demo</pre><button class="copy-btn" onclick="copy('s1',this)">Copy</button></div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">2</div>
+        <div class="setup-step-body">
+          <p>Create your <code>.env</code> file and add your Anthropic API key:</p>
+          <div class="code-wrap"><pre id="s2">cp .env.example .env
+# edit .env and set ANTHROPIC_API_KEY=sk-ant-...</pre><button class="copy-btn" onclick="copy('s2',this)">Copy</button></div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">3</div>
+        <div class="setup-step-body">
+          <p>Install dependencies and start the dev server:</p>
+          <div class="code-wrap"><pre id="s3">pnpm install
+pnpm dev</pre><button class="copy-btn" onclick="copy('s3',this)">Copy</button></div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="step-num">4</div>
+        <div class="setup-step-body">
+          <p>Open the VoltAgent console URL printed in the terminal. Paste any request payload from this page to run a workflow.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:2rem;margin-bottom:0.75rem;">Environment Variables</h3>
+    <div class="table-wrap">
+      <table class="env-table">
+        <tr><td>ANTHROPIC_API_KEY</td><td>Required</td><td>Your Anthropic API key</td></tr>
+        <tr><td>VOLTAGENT_PUBLIC_KEY</td><td>Optional</td><td>VoltAgent cloud console tracing</td></tr>
+        <tr><td>VOLTAGENT_SECRET_KEY</td><td>Optional</td><td>VoltAgent cloud console tracing</td></tr>
+      </table>
+    </div>
+
+    <h3 style="margin-top:2rem;margin-bottom:0.75rem;">Switching Models</h3>
+    <p>All six agents share the <code>MODEL</code> constant at the top of <code>src/index.ts</code>:</p>
+    <div class="code-wrap">
+      <pre id="models">const MODEL = "anthropic/claude-haiku-4-5-20251001"; // fast & cheap
+// const MODEL = "anthropic/claude-sonnet-4-6";       // balanced
+// const MODEL = "anthropic/claude-opus-4-7";          // most capable</pre>
+      <button class="copy-btn" onclick="copy('models',this)">Copy</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function copy(id, btn) {
+    const el = document.getElementById(id);
+    const text = el.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+</script>
+
+</body>
+</html>
